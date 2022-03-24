@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Calc } from './dto/calc.dto';
+import { Calc } from '../../dto/calc.dto';
 
 const calc: Calc[] = [];
 

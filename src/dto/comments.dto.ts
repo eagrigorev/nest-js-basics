@@ -1,6 +1,5 @@
-export class News {
-  id!: number;
-  title!: string;
+export class Comments {
+  commentsId!: number;
   description!: string;
   createdAt!: Date;
   updatedAt!: Date;

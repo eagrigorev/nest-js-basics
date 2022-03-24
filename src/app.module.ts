@@ -1,12 +1,14 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { NewsModule } from './news/news.module';
-import { CalcModule } from './calc/calc.module';
+import { NewsModule } from './modules/news/news.module';
+import { CalcModule } from './modules/calc/calc.module';
+import { CommentsModule } from './modules/comments/comments.module';
+import { NewsController } from './controllers/news.controller';
+import { CalcController } from './controllers/calc.controller';
+import { CommentsController } from './controllers/comments.controller';
 
 @Module({
-  imports: [NewsModule, CalcModule],
-  controllers: [AppController],
-  providers: [AppService],
+  imports: [NewsModule, CalcModule, CommentsModule],
+  controllers: [NewsController, CalcController, CommentsController],
+  providers: [Array],
 })
 export class AppModule {}

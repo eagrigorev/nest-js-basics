@@ -1,7 +1,7 @@
 import { Controller, Header, Body, Get, Put } from '@nestjs/common';
 
-import { Calc } from './dto/calc.dto';
-import { CalcService } from './calc.service';
+import { Calc } from '../dto/calc.dto';
+import { CalcService } from '../modules/calc/calc.service';
 
 @Controller('calc')
 export class CalcController {
