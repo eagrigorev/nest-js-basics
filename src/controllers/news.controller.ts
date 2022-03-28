@@ -8,7 +8,7 @@ import {
   Delete,
 } from '@nestjs/common';
 
-import { News } from '../dto/news.dto';
+import { News, NewsPayload } from '../dto/news.dto';
 import { NewsService } from '../modules/news/news.service';
 import { IdDecrement } from '../utils/decorators/idDecrement';
 
@@ -37,7 +37,7 @@ export class NewsController {
 
   @Post('add')
   async createNews(
-    @Body() @IdDecrement(['newsId']) body: News,
+    @Body() @IdDecrement(['newsId']) body: NewsPayload,
   ): Promise<News[]> {
     return this.newsService.createNews(body);
   }
@@ -45,7 +45,7 @@ export class NewsController {
   @Put('update')
   async updateNews(
     @Query() @IdDecrement(['newsId']) query: { newsId: number },
-    @Body() @IdDecrement(['newsId']) body: News,
+    @Body() @IdDecrement(['newsId']) body: NewsPayload,
   ): Promise<News[]> {
     return this.newsService.updateNews(query.newsId, body);
   }

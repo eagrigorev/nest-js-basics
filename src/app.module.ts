@@ -5,9 +5,15 @@ import { CommentsModule } from './modules/comments/comments.module';
 import { NewsController } from './controllers/news.controller';
 import { CalcController } from './controllers/calc.controller';
 import { CommentsController } from './controllers/comments.controller';
+import { MulterModule } from '@nestjs/platform-express';
 
 @Module({
-  imports: [NewsModule, CalcModule, CommentsModule],
+  imports: [
+    NewsModule,
+    CalcModule,
+    CommentsModule,
+    MulterModule.register({ dest: './upload' }),
+  ],
   controllers: [NewsController, CalcController, CommentsController],
   providers: [Array],
 })

@@ -1,51 +1,22 @@
 import { Injectable } from '@nestjs/common';
-import { News } from '../../dto/news.dto';
+import { News, NewsPayload } from '../../dto/news.dto';
+import { news } from '../../utils/fakeDatabase';
 
-const news: News[] = [
-  {
-    newsId: 1,
-    title: 'First news element',
-    description: 'Some text describing the things',
-    createdAt: new Date(Date.now()),
-    updatedAt: new Date(Date.now()),
-    comments: [
-      {
-        commentsId: 1,
-        description: 'This is the first comment',
-        createdAt: new Date(Date.now()),
-        updatedAt: new Date(Date.now()),
-      },
-      {
-        commentsId: 2,
-        description: 'Another comment',
-        createdAt: new Date(Date.now()),
-        updatedAt: new Date(Date.now()),
-      },
-    ],
-  },
-  {
-    newsId: 2,
-    title: 'Second news element',
-    description: 'Another text describing the things',
-    createdAt: new Date(Date.now()),
-    updatedAt: new Date(Date.now()),
-    comments: [
-      {
-        commentsId: 1,
-        description: 'Yet another comment',
-        createdAt: new Date(Date.now()),
-        updatedAt: new Date(Date.now()),
-      },
-    ],
-  },
-];
+let newsIdGlobal = 3;
 
 @Injectable()
 export class NewsService {
   private readonly news: News[] = [];
 
-  async createNews(data: News): Promise<News[]> {
-    news.push(data);
+  async createNews(data: NewsPayload): Promise<News[]> {
+    const newNewsEntry: News = {
+      ...data,
+      newsId: newsIdGlobal,
+      createdAt: new Date(Date.now()),
+      updatedAt: new Date(Date.now()),
+    };
+    newsIdGlobal++;
+    news.push(newNewsEntry);
     return news;
   }
 
@@ -74,8 +45,10 @@ export class NewsService {
         <section>
           <h3>Comments</h3>
           ${entry.comments.map((comment) => {
+            const avatarPath = comment.avatar.split('\\').pop();
             return `
               <article>
+                <img src="/upload/${avatarPath}" alt="Avatar" width="100" height="100">
                 ${comment.description} | Created: ${comment.createdAt}
               <article/>
             `;
@@ -85,13 +58,14 @@ export class NewsService {
     `;
   }
 
-  async updateNews(newsId: number, data: News): Promise<News[]> {
-    let existingNews = news[data.newsId];
+  async updateNews(newsId: number, data: NewsPayload): Promise<News[]> {
+    let existingNews = news[newsId];
     existingNews = {
       ...existingNews,
       ...data,
+      updatedAt: new Date(Date.now()),
     };
-    news[data.newsId] = existingNews;
+    news[newsId] = existingNews;
     return news;
   }
 

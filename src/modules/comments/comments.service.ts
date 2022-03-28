@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { Comments } from '../../dto/comments.dto';
+import { Comments, CommentsPayload } from '../../dto/comments.dto';
 import { News } from '../../dto/news.dto';
 import { NewsService } from '../news/news.service';
+
+let commentsIdGlobal = 4;
 
 @Injectable()
 export class CommentsService {
@@ -22,21 +24,41 @@ export class CommentsService {
     return news[newsId].comments;
   }
 
-  async createComments(newsId: number, data: Comments): Promise<News[]> {
+  async createComments(newsId: number, data: CommentsPayload): Promise<News[]> {
     const news = await this.newsService.getNewsAll();
-    news[newsId].comments.push(data);
+    const newCommentsEntry: Comments = {
+      ...data,
+      commentsId: commentsIdGlobal,
+      createdAt: new Date(Date.now()),
+      updatedAt: new Date(Date.now()),
+    };
+    commentsIdGlobal++;
+    news[newsId].comments.push(newCommentsEntry);
     return news;
   }
 
   async updateComments(
     newsId: number,
     commentsId: number,
-    data: Comments,
+    data: CommentsPayload,
   ): Promise<News[]> {
     const news = await this.newsService.getNewsAll();
     let existingComments = news[newsId].comments[commentsId];
-    existingComments = { ...existingComments, ...data };
+    existingComments = {
+      ...existingComments,
+      ...data,
+      updatedAt: new Date(Date.now()),
+    };
     news[newsId].comments[commentsId] = existingComments;
     return news;
+  }
+
+  async uploadAvatar(
+    newsId: number,
+    commentsId: number,
+    path: string,
+  ): Promise<void> {
+    const news = await this.newsService.getNewsAll();
+    news[newsId].comments[commentsId].avatar = path;
   }
 }
