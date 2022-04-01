@@ -1,11 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { News, NewsPayload } from '../../dto/news.dto';
 import { news } from '../../utils/fakeDatabase';
+import { MailService } from '../mail/mail.service';
 
 let newsIdGlobal = 3;
 
 @Injectable()
 export class NewsService {
+  constructor(private mailService: MailService) {}
+
   private readonly news: News[] = [];
 
   async createNews(data: NewsPayload): Promise<News[]> {
@@ -24,10 +27,17 @@ export class NewsService {
     return news;
   }
 
-  async getNewsSingle(newsId: number): Promise<News> {
+  // async getNewsSingle(newsId: number): Promise<News> {
+  //   const entry = news[newsId];
+  //   if (entry) {
+  //     return news[newsId];
+  //   } else throw new Error('Error 404: Entry not found!');
+  // }
+
+  getNewsSingle(newsId: number): News {
     const entry = news[newsId];
     if (entry) {
-      return news[newsId];
+      return { ...entry };
     } else throw new Error('Error 404: Entry not found!');
   }
 
@@ -58,7 +68,7 @@ export class NewsService {
     `;
   }
 
-  async updateNews(newsId: number, data: NewsPayload): Promise<News[]> {
+  async updateNews(newsId: number, data: NewsPayload): Promise<News> {
     let existingNews = news[newsId];
     existingNews = {
       ...existingNews,
@@ -66,7 +76,8 @@ export class NewsService {
       updatedAt: new Date(Date.now()),
     };
     news[newsId] = existingNews;
-    return news;
+    this.mailService.sendTestMail(news[newsId]);
+    return news[newsId];
   }
 
   async deleteNews(newsId: number): Promise<News[]> {

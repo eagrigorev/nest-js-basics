@@ -6,6 +6,7 @@ import {
   Post,
   Put,
   Delete,
+  Render,
 } from '@nestjs/common';
 
 import { News, NewsPayload } from '../dto/news.dto';
@@ -16,11 +17,19 @@ import { IdDecrement } from '../utils/decorators/idDecrement';
 export class NewsController {
   constructor(private newsService: NewsService) {}
 
+  // @Get('single')
+  // async getNewsSingle(
+  //   @Query() @IdDecrement(['newsId']) query: { newsId: number },
+  // ): Promise<News> {
+  //   return this.newsService.getNewsSingle(query.newsId);
+  // }
+
   @Get('single')
-  async getNewsSingle(
-    @Query() @IdDecrement(['newsId']) query: { newsId: number },
-  ): Promise<News> {
-    return this.newsService.getNewsSingle(query.newsId);
+  @Render('index')
+  getNewsSingle(@Query() @IdDecrement(['newsId']) query: { newsId: number }): {
+    message: News;
+  } {
+    return { message: this.newsService.getNewsSingle(query.newsId) };
   }
 
   @Get('single-display')
@@ -43,10 +52,11 @@ export class NewsController {
   }
 
   @Put('update')
-  async updateNews(
+  @Render('templates/test')
+  updateNews(
     @Query() @IdDecrement(['newsId']) query: { newsId: number },
     @Body() @IdDecrement(['newsId']) body: NewsPayload,
-  ): Promise<News[]> {
+  ): Promise<News> {
     return this.newsService.updateNews(query.newsId, body);
   }
 

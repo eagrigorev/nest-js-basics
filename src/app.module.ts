@@ -6,6 +6,7 @@ import { NewsController } from './controllers/news.controller';
 import { CalcController } from './controllers/calc.controller';
 import { CommentsController } from './controllers/comments.controller';
 import { MulterModule } from '@nestjs/platform-express';
+import { MailModule } from './modules/mail/mail.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { MulterModule } from '@nestjs/platform-express';
     CalcModule,
     CommentsModule,
     MulterModule.register({ dest: './upload' }),
+    MailModule,
   ],
   controllers: [NewsController, CalcController, CommentsController],
   providers: [Array],
