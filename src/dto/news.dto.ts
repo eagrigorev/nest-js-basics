@@ -1,12 +1,4 @@
-import {
-  IsArray,
-  IsDate,
-  IsInt,
-  IsOptional,
-  IsPositive,
-  IsString,
-} from 'class-validator';
-import { Comments } from './comments.dto';
+import { IsString } from 'class-validator';
 
 export class NewsPayload {
   @IsString()
@@ -14,22 +6,4 @@ export class NewsPayload {
 
   @IsString()
   description!: string;
-
-  @IsArray()
-  @IsOptional()
-  comments: Comments[];
-}
-
-export class News extends NewsPayload {
-  @IsInt()
-  @IsPositive()
-  newsId!: number;
-
-  @IsDate()
-  @IsOptional()
-  createdAt!: Date;
-
-  @IsDate()
-  @IsOptional()
-  updatedAt!: Date;
 }

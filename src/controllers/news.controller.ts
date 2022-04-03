@@ -6,64 +6,40 @@ import {
   Post,
   Put,
   Delete,
-  Render,
 } from '@nestjs/common';
-
-import { News, NewsPayload } from '../dto/news.dto';
+import { NewsPayload } from '../dto/news.dto';
+import { NewsEntity } from '../database/news/news.entity';
 import { NewsService } from '../modules/news/news.service';
-import { IdDecrement } from '../utils/decorators/idDecrement';
 
 @Controller('news')
 export class NewsController {
   constructor(private newsService: NewsService) {}
 
-  // @Get('single')
-  // async getNewsSingle(
-  //   @Query() @IdDecrement(['newsId']) query: { newsId: number },
-  // ): Promise<News> {
-  //   return this.newsService.getNewsSingle(query.newsId);
-  // }
+  @Get('all')
+  async getNewsAll(): Promise<NewsEntity[]> {
+    return await this.newsService.getNewsAll();
+  }
 
   @Get('single')
-  @Render('index')
-  getNewsSingle(@Query() @IdDecrement(['newsId']) query: { newsId: number }): {
-    message: News;
-  } {
-    return { message: this.newsService.getNewsSingle(query.newsId) };
-  }
-
-  @Get('single-display')
-  async getNewsSingleDisplay(
-    @Query() @IdDecrement(['newsId']) query: { newsId: number },
-  ): Promise<string> {
-    return this.newsService.getNewsSingleDisplay(query.newsId);
-  }
-
-  @Get('all')
-  async getNewsAll(): Promise<News[]> {
-    return this.newsService.getNewsAll();
+  async getNewsSingle(@Query() query: { newsId: number }): Promise<NewsEntity> {
+    return await this.newsService.getNewsSingle(query.newsId);
   }
 
   @Post('add')
-  async createNews(
-    @Body() @IdDecrement(['newsId']) body: NewsPayload,
-  ): Promise<News[]> {
-    return this.newsService.createNews(body);
+  async createNewsSingle(@Body() news: NewsPayload): Promise<NewsEntity> {
+    return await this.newsService.createNewsSingle(news);
   }
 
   @Put('update')
-  @Render('templates/test')
-  updateNews(
-    @Query() @IdDecrement(['newsId']) query: { newsId: number },
-    @Body() @IdDecrement(['newsId']) body: NewsPayload,
-  ): Promise<News> {
-    return this.newsService.updateNews(query.newsId, body);
+  async updateNewsSingle(
+    @Query() query: { newsId: number },
+    @Body() news: NewsPayload,
+  ): Promise<string> {
+    return await this.newsService.updateNewsSingle(query.newsId, news);
   }
 
   @Delete('delete')
-  async deleteNews(
-    @Query() @IdDecrement(['newsId']) query: { newsId: number },
-  ): Promise<News[]> {
-    return this.newsService.deleteNews(query.newsId);
+  async deleteNewsSingle(@Query() query: { newsId: number }): Promise<string> {
+    return await this.newsService.deleteNewsSingle(query.newsId);
   }
 }

@@ -27,5 +27,3 @@ import { MailController } from '../../controllers/mail.controller';
   exports: [MailService],
 })
 export class MailModule {}
-
-//console.log(__dirname);

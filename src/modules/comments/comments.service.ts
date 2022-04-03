@@ -1,64 +1,108 @@
 import { Injectable } from '@nestjs/common';
-import { Comments, CommentsPayload } from '../../dto/comments.dto';
-import { News } from '../../dto/news.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { NewsEntity } from '../../database/news/news.entity';
+import { Repository } from 'typeorm';
+import { CommentsEntity } from '../../database/comments/comments.entity';
+import { CommentsPayload } from '../../dto/comments.dto';
 import { NewsService } from '../news/news.service';
-
-let commentsIdGlobal = 4;
 
 @Injectable()
 export class CommentsService {
-  constructor(private newsService: NewsService) {}
+  constructor(
+    @InjectRepository(CommentsEntity)
+    private readonly commentsRepository: Repository<CommentsEntity>,
+    private readonly newsService: NewsService,
+  ) {}
+
+  async getCommentsAll(newsId: number): Promise<CommentsEntity[]> {
+    const _news = await this.newsService.getNewsSingle(newsId);
+    return _news.comments;
+  }
 
   async getCommentsSingle(
     newsId: number,
     commentsId: number,
-  ): Promise<Comments> {
-    const news = await this.newsService.getNewsAll();
-    if (news[newsId].comments[commentsId]) {
-      return news[newsId].comments[commentsId];
-    } else throw new Error('Error 404: Entry not found!');
+  ): Promise<CommentsEntity> {
+    const _news = await this.newsService.getNewsSingle(newsId);
+    if (_news.comments[commentsId]) {
+      return _news.comments[commentsId];
+    } else
+      throw new Error(
+        `Error 404: Comment #${commentsId} of entry #${newsId} was not found!`,
+      );
   }
 
-  async getCommentsAll(newsId: number): Promise<Comments[]> {
-    const news = await this.newsService.getNewsAll();
-    return news[newsId].comments;
+  async createCommentsSingle(
+    newsId: number,
+    comment: CommentsPayload,
+  ): Promise<NewsEntity> {
+    const _newsEntity = await this.newsService.getNewsSingle(newsId);
+    if (_newsEntity) {
+      const _commentsEntity = new CommentsEntity();
+      _commentsEntity.description = comment.description;
+      _commentsEntity.avatar = comment.avatar;
+      _commentsEntity.newsId = _newsEntity;
+      this.commentsRepository.save(_commentsEntity);
+      return await this.newsService.getNewsSingle(newsId);
+    } else {
+      throw new Error(`Error 404: Entry #${newsId} was not found!`);
+    }
   }
 
-  async createComments(newsId: number, data: CommentsPayload): Promise<News[]> {
-    const news = await this.newsService.getNewsAll();
-    const newCommentsEntry: Comments = {
-      ...data,
-      commentsId: commentsIdGlobal,
-      createdAt: new Date(Date.now()),
-      updatedAt: new Date(Date.now()),
-    };
-    commentsIdGlobal++;
-    news[newsId].comments.push(newCommentsEntry);
-    return news;
-  }
-
-  async updateComments(
+  async updateCommentsSingle(
     newsId: number,
     commentsId: number,
-    data: CommentsPayload,
-  ): Promise<News[]> {
-    const news = await this.newsService.getNewsAll();
-    let existingComments = news[newsId].comments[commentsId];
-    existingComments = {
-      ...existingComments,
-      ...data,
-      updatedAt: new Date(Date.now()),
-    };
-    news[newsId].comments[commentsId] = existingComments;
-    return news;
+    comment: CommentsPayload,
+  ): Promise<string> {
+    const _newsEntity = await this.newsService.getNewsSingle(newsId);
+    if (_newsEntity) {
+      const _commentsEntity = await this.commentsRepository.findOneBy({
+        commentsId,
+      });
+      if (_commentsEntity) {
+        this.commentsRepository.update(
+          {
+            commentsId: commentsId,
+          },
+          {
+            description: comment.description,
+            avatar: comment.avatar,
+            updatedAt: new Date(Date.now()),
+          },
+        );
+        return `Comment #${commentsId} for the entry #${newsId} was successfully updated. See it @ GET news/single?newsId=${newsId}.`;
+      } else {
+        throw new Error(`Error 404: Entry #${commentsId} was not found!`);
+      }
+    } else {
+      throw new Error(`Error 404: Entry #${newsId} was not found!`);
+    }
   }
 
-  async uploadAvatar(
+  async uploadCommentsAvatar(
     newsId: number,
     commentsId: number,
     path: string,
   ): Promise<void> {
-    const news = await this.newsService.getNewsAll();
-    news[newsId].comments[commentsId].avatar = path;
+    const _newsEntity = await this.newsService.getNewsSingle(newsId);
+    if (_newsEntity) {
+      const _commentsEntity = await this.commentsRepository.findOneBy({
+        commentsId,
+      });
+      if (_commentsEntity) {
+        this.commentsRepository.update(
+          {
+            commentsId: commentsId,
+          },
+          {
+            avatar: path,
+          },
+        );
+      } else {
+        throw new Error(`Error 404: Entry #${commentsId} was not found!`);
+      }
+    } else {
+      throw new Error(`Error 404: Entry #${newsId} was not found!`);
+    }
   }
 }

@@ -1,90 +1,59 @@
 import { Injectable } from '@nestjs/common';
-import { News, NewsPayload } from '../../dto/news.dto';
-import { news } from '../../utils/fakeDatabase';
 import { MailService } from '../mail/mail.service';
-
-let newsIdGlobal = 3;
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { NewsEntity } from '../../database/news/news.entity';
+import { NewsPayload } from '../../dto/news.dto';
 
 @Injectable()
 export class NewsService {
-  constructor(private mailService: MailService) {}
+  constructor(
+    @InjectRepository(NewsEntity)
+    private readonly newsRepository: Repository<NewsEntity>,
+    private readonly mailService: MailService,
+  ) {}
 
-  private readonly news: News[] = [];
-
-  async createNews(data: NewsPayload): Promise<News[]> {
-    const newNewsEntry: News = {
-      ...data,
-      newsId: newsIdGlobal,
-      createdAt: new Date(Date.now()),
-      updatedAt: new Date(Date.now()),
-    };
-    newsIdGlobal++;
-    news.push(newNewsEntry);
-    return news;
+  async getNewsAll(): Promise<NewsEntity[]> {
+    return await this.newsRepository.find({ relations: ['comments'] });
   }
 
-  async getNewsAll(): Promise<News[]> {
-    return news;
+  async getNewsSingle(newsId: number): Promise<NewsEntity> {
+    const _newsEntity = await this.newsRepository.findOneBy({ newsId });
+    if (_newsEntity) {
+      return _newsEntity;
+    } else {
+      throw new Error(`Error 404: Entry #${newsId} was not found!`);
+    }
   }
 
-  // async getNewsSingle(newsId: number): Promise<News> {
-  //   const entry = news[newsId];
-  //   if (entry) {
-  //     return news[newsId];
-  //   } else throw new Error('Error 404: Entry not found!');
-  // }
-
-  getNewsSingle(newsId: number): News {
-    const entry = news[newsId];
-    if (entry) {
-      return { ...entry };
-    } else throw new Error('Error 404: Entry not found!');
+  async createNewsSingle(news: NewsPayload): Promise<NewsEntity> {
+    const _newsEntity = new NewsEntity();
+    _newsEntity.title = news.title;
+    _newsEntity.description = news.description;
+    return await this.newsRepository.save(_newsEntity);
   }
 
-  async getNewsSingleDisplay(newsId: number): Promise<string> {
-    const entry = news[newsId];
-    return `
-      <header>
-        <h2>${entry.title}</h2>   
-      </header>
-      <main>
-        <section>
-          <p>${entry.description}</p>
-          <p>Created: ${entry.createdAt} | Updated: ${entry.updatedAt}</p>
-        </section>
-        <section>
-          <h3>Comments</h3>
-          ${entry.comments.map((comment) => {
-            const avatarPath = comment.avatar.split('\\').pop();
-            return `
-              <article>
-                <img src="/upload/${avatarPath}" alt="Avatar" width="100" height="100">
-                ${comment.description} | Created: ${comment.createdAt}
-              <article/>
-            `;
-          })}
-        </section>
-      </main>
-    `;
+  async updateNewsSingle(newsId: number, news: NewsPayload): Promise<string> {
+    const _newsEntity = await this.newsRepository.findOneBy({ newsId });
+    if (_newsEntity) {
+      this.newsRepository.update(
+        { newsId: newsId },
+        {
+          title: news.title,
+          description: news.description,
+          updatedAt: new Date(Date.now()),
+        },
+      );
+      this.mailService.sendTestMail(news[newsId]);
+      return `Entry #${newsId} was successfully updated. See it @ GET news/single?newsId=${newsId}.`;
+    } else {
+      throw new Error(`Error 404: Entry #${newsId} was not found!`);
+    }
   }
 
-  async updateNews(newsId: number, data: NewsPayload): Promise<News> {
-    let existingNews = news[newsId];
-    existingNews = {
-      ...existingNews,
-      ...data,
-      updatedAt: new Date(Date.now()),
-    };
-    news[newsId] = existingNews;
-    this.mailService.sendTestMail(news[newsId]);
-    return news[newsId];
-  }
-
-  async deleteNews(newsId: number): Promise<News[]> {
-    const entry = news[newsId];
-    if (entry) {
-      news.splice(newsId, newsId);
-      return news;
-    } else throw new Error('Entry not found!');
+  async deleteNewsSingle(newsId: number) {
+    const _news = await this.getNewsSingle(newsId);
+    this.newsRepository.remove(_news);
+    return await `Entry #${newsId} was successfully deleted.`;
   }
 }
