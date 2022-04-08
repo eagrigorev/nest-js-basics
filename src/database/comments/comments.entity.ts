@@ -8,6 +8,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { NewsEntity } from '../news/news.entity';
+import { UsersEntity } from '../users/users.entity';
 
 @Entity('comments')
 export class CommentsEntity {
@@ -29,4 +30,7 @@ export class CommentsEntity {
   @ManyToOne(() => NewsEntity)
   @JoinColumn()
   newsId!: NewsEntity;
+
+  @ManyToOne(() => UsersEntity, (user) => user.usersId)
+  user: UsersEntity;
 }

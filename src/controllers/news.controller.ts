@@ -6,10 +6,14 @@ import {
   Post,
   Put,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { NewsPayload } from '../dto/news.dto';
 import { NewsEntity } from '../database/news/news.entity';
 import { NewsService } from '../modules/news/news.service';
+import { JwtAuthGuard } from '../modules/auth/jwt-auth.guard';
+import { Roles } from '../modules/auth/roles/roles.decorator';
+import { Role } from '../modules/auth/roles/roles.enum';
 
 @Controller('news')
 export class NewsController {
@@ -26,11 +30,15 @@ export class NewsController {
   }
 
   @Post('add')
+  @UseGuards(JwtAuthGuard)
+  @Roles(Role.Admin)
   async createNewsSingle(@Body() news: NewsPayload): Promise<NewsEntity> {
     return await this.newsService.createNewsSingle(news);
   }
 
   @Put('update')
+  @UseGuards(JwtAuthGuard)
+  @Roles(Role.Admin)
   async updateNewsSingle(
     @Query() query: { newsId: number },
     @Body() news: NewsPayload,

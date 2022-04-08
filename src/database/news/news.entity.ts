@@ -2,11 +2,13 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { CommentsEntity } from '../comments/comments.entity';
+import { UsersEntity } from '../users/users.entity';
 
 @Entity('news')
 export class NewsEntity {
@@ -27,4 +29,7 @@ export class NewsEntity {
 
   @OneToMany(() => CommentsEntity, (comment) => comment.newsId)
   comments!: CommentsEntity[];
+
+  @ManyToOne(() => UsersEntity, (user) => user.usersId)
+  user: UsersEntity;
 }

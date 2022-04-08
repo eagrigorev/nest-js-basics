@@ -7,6 +7,11 @@ import { MulterModule } from '@nestjs/platform-express';
 import { MailModule } from './modules/mail/mail.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Connection } from 'typeorm';
+import { UsersModule } from './modules/users/users.module';
+import { AuthService } from './modules/auth/auth.service';
+import { AuthModule } from './modules/auth/auth.module';
+import { AppController } from './controllers/app.controller';
+import { JwtService } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -27,9 +32,11 @@ import { Connection } from 'typeorm';
     CommentsModule,
     MulterModule.register({ dest: './upload' }),
     MailModule,
+    UsersModule,
+    AuthModule,
   ],
-  controllers: [NewsController, CommentsController],
-  providers: [Array],
+  controllers: [NewsController, CommentsController, AppController],
+  providers: [Array, AuthService, JwtService],
 })
 export class AppModule {
   constructor(private connection: Connection) {}
